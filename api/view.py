@@ -19,6 +19,31 @@ import functools
 import colorgram
 import math
 
+import logging
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+# Set up basic logging
+logging.basicConfig(filename='app.log', level=logging.DEBUG, 
+                    format='%(asctime)s %(levelname)s: %(message)s')
+
+# Custom error handlers
+@app.errorhandler(500)
+def internal_error(error):
+    app.logger.error('Server Error: %s', (error))
+    return "500 error: Something went wrong on the server.", 500
+
+@app.errorhandler(404)
+def not_found_error(error):
+    app.logger.warning('Not Found: %s', (error))
+    return "404 error: Resource not found.", 404
+
+@app.route('/healthcheck', methods=['GET'])
+def healthcheck():
+    return jsonify({"status": "healthy"}), 200
+
+
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 print("Starting Server")
