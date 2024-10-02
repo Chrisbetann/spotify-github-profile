@@ -6,6 +6,32 @@ Running on Vercel serverless function, store data in Firebase (store only access
 
 ## Annoucements
 
+## Enhancements and Updates by Christopher Betancourt
+## This project has undergone several updates to enhance its functionality, maintainability, and performance:
+
+1. Enhanced Error Handling and Logging
+Implemented comprehensive error handling across both callback.py and login.py files.
+Added logging to capture and log various types of errors for easier debugging and enhanced visibility.
+Created custom error responses to provide meaningful messages to users when errors occur.
+2. Spotify Utility Refactoring
+Refactored Spotify-specific operations (such as generating tokens, getting user profiles, and saving data to Firebase) into reusable utility functions.
+These functions are located in util/spotify_util.py and ensure that the code is modular and easily maintainable.
+The login.py and callback.py files now import and use these utility functions, making the main logic cleaner and easier to understand.
+3. Performance Tuning with Gunicorn
+Optimized the application for production by running it with Gunicorn, a Python WSGI HTTP Server, to handle multiple requests concurrently.
+Added a Gunicorn configuration file (gunicorn.conf.py) to manage worker and thread settings to improve scalability.
+Dockerfile now runs the Flask app using Gunicorn for improved performance in production environments.
+4. Docker Healthcheck Integration
+Added a healthcheck route (/healthcheck) to ensure the service is running properly.
+Integrated a Docker HEALTHCHECK to verify the container's health and improve monitoring and reliability.
+5. Dynamic SVG for Enhanced Profile Display
+Developed a dynamic SVG that updates automatically to reflect the currently playing song on Spotify, offering a more visually engaging display on GitHub profiles.
+SVG components like album art, track name, and artist are dynamically rendered and updated periodically, making the profile interactive and attractive.
+Future enhancements to the SVG include animated song features based on Spotify’s audio data, such as tempo and energy.
+6. Environment Configuration Updates
+Introduced .env support to store sensitive information (such as API keys and Firebase credentials) securely.
+Added support for python-dotenv to load environment variables, making local and deployment configurations easier.
+
 **2024-06-21**
 
 Vercel change the package the free tier is not enough for our usage. I moved service to self-host at Digital Ocean.
