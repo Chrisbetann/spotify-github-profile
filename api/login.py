@@ -1,8 +1,7 @@
 import logging
 from flask import Flask, redirect, request, Response
 import requests
-import os
-from util import spotify
+from util.spotify_util import get_auth_url
 
 app = Flask(__name__)
 
@@ -13,8 +12,8 @@ logging.basicConfig(filename='login.log', level=logging.DEBUG,
 @app.route("/login")
 def login():
     try:
-        # Construct the Spotify authorization URL
-        auth_url = spotify.get_auth_url()
+        # Construct the Spotify authorization URL using the utility function
+        auth_url = get_auth_url()
         return redirect(auth_url)
 
     except requests.exceptions.RequestException as req_err:
