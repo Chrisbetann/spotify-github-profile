@@ -1,30 +1,13 @@
-from flask import Flask, Response, jsonify, render_template, redirect, request
-from base64 import b64decode
+from flask import Flask, Response, jsonify, render_template, request
 from dotenv import load_dotenv, find_dotenv
-import logging
 
 load_dotenv(find_dotenv())
 
-from firebase_admin import credentials
-from firebase_admin import firestore
-import firebase_admin
-
-import os
-import json
-from util import spotify
+import logging
+from util.spotify_util import generate_token, get_user_profile, save_user_data_to_firestore
 
 print("Starting Server")
 
-# Firebase setup
-firebase_config = os.getenv("FIREBASE")
-firebase_dict = json.loads(b64decode(firebase_config))
-
-cred = credentials.Certificate(firebase_dict)
-firebase_admin.initialize_app(cred)
-
-db = firestore.client()
-
-# Flask setup
 app = Flask(__name__)
 
 # Set up basic logging
@@ -43,7 +26,7 @@ def catch_all(path):
             return Response("Authorization code missing, please try again.", status=400)
 
         # Generate Spotify token using received code
-        token_info = spotify.generate_token(code)
+        token_info = generate_token(code)
         access_token = token_info.get("access_token")
 
         if not access_token:
@@ -51,7 +34,7 @@ def catch_all(path):
             return Response("Failed to authenticate with Spotify. Please try again.", status=500)
 
         # Get user profile information from Spotify
-        spotify_user = spotify.get_user_profile(access_token)
+        spotify_user = get_user_profile(access_token)
         user_id = spotify_user.get("id")
 
         if not user_id:
@@ -59,19 +42,18 @@ def catch_all(path):
             return Response("Unable to retrieve user profile. Please try again later.", status=500)
 
         # Save token information to Firestore
-        doc_ref = db.collection("users").document(user_id)
-        doc_ref.set(token_info)
+        save_user_data_to_firestore(user_id, token_info)
 
         # Render callback template with necessary data
         rendered_data = {
             "uid": user_id,
-            "BASE_URL": spotify.BASE_URL,
+            "BASE_URL": os.getenv("BASE_URL"),
         }
 
         return render_template("callback.html.j2", **rendered_data)
 
-    except requests.exceptions.HTTPError as http_err:
-        app.logger.error(f"HTTP error occurred: {http_err}")
+    except requests.exceptions.RequestException as req_err:
+        app.logger.error(f"HTTP error occurred: {req_err}")
         return Response("Error during Spotify authentication. Please try again later.", status=500)
 
     except Exception as err:
